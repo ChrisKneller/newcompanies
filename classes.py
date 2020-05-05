@@ -6,7 +6,6 @@ Base = declarative_base()
 class Company(Base):
      __tablename__ = 'companies'
 
-     id = Column(Integer, Sequence('user_id_seq'),)
      number = Column(Integer, primary_key=True)
      name = Column(String)
      incorporated_on = Column(Date)
