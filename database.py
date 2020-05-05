@@ -8,10 +8,9 @@ USER = os.environ.get('NC_DB_USER')
 PW = os.environ.get('NC_DB_PW')
 
 def connect_to_db(database=DB):
-    engine = db.create_engine(database, echo=True)
+    engine = db.create_engine(database)
     connection = engine.connect()
     metadata = db.MetaData()
     Session = sessionmaker(bind=engine)
     session = Session()
     return session
-    
