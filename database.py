@@ -1,4 +1,5 @@
 import sqlalchemy as db
+from sqlalchemy.orm import sessionmaker
 import os
 from classes import Base, Company, Test
 
@@ -10,11 +11,7 @@ def connect_to_db(database=DB):
     engine = db.create_engine(database, echo=True)
     connection = engine.connect()
     metadata = db.MetaData()
-    return engine, metadata
-
-def update_tables(engine):
-    Base.metadata.create_all(engine)
-
-
-if __name__ == "__main__":
-    engine, metadata = connect_to_db()
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    return session
+    
