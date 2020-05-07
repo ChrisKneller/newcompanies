@@ -1,10 +1,12 @@
 import requests
 import json
 import os
-from database import connect_to_db, DB
+from database import connect_to_db, DB, get_or_create, get_company_extremes
 from classes import Company
 import datetime
 import operator
+from sqlalchemy import func
+import time
 
 # .\env\Scripts\activate
 
@@ -12,7 +14,8 @@ COMPANY_DATA_URL = 'http://data.companieshouse.gov.uk/doc/company/'
 FORMAT = '.json'
 TEST_COMPANY_NUMBER = 12586212
 
-SESSION = connect_to_db(DB)
+# SESSION = connect_to_db(DB)
+
 
 def get_company_data(company_number:int) -> dict:
     """
@@ -25,6 +28,7 @@ def get_company_data(company_number:int) -> dict:
     data = json.loads(r.text)['primaryTopic']
     return data
 
+
 def company_data_to_model(data):
     """
     Returns an instance of the Company class for the input data, where data is the standard format from Companies House.
@@ -34,31 +38,38 @@ def company_data_to_model(data):
     company = Company(number=int(data['CompanyNumber']), name=data['CompanyName'], incorporated_on=dt)
     return company
 
-def get_or_create(session, model, **kwargs):
-    """
-    Check if an item exists inside the database, add it if it doesn't.
-    """
-    instance = session.query(model).filter_by(**kwargs).one_or_none()
-    if instance:
-        return instance
-    else:
-        instance = model(**kwargs)
-        session.add(instance)
-        session.commit()
-        return instance
 
-def get_and_add_companies(start_point: int, asc=True, session=SESSION):
+def get_and_add_companies(start_point: int, session, asc=True):
     """
-    Get company data for all companies after the input company.
+    Given a company number as the starting point and choosing a direction, add companies above or below
+    the starting point to the database sequentially.
     """
     company_number = start_point
     op = operator.add if asc else operator.sub
-    while True:
+    tries = 0
+    trylim = 10
+    while tries < 150:
         data = get_company_data(company_number)
         if not data:
-            company_number = op(company_number,1)
+            if asc == False or tries > trylim:
+                company_number = op(company_number,1)
+                trylim += 10
+            else:
+                tries += 1
+                time.sleep(120)
             continue
         company = company_data_to_model(data)
         instance = get_or_create(session, Company, number=company.number, name=company.name, incorporated_on=company.incorporated_on)
         company_number = op(company_number,1)
     return instance
+
+if __name__ == "__main__":
+    SESSION = connect_to_db(DB)
+    x = input("Up or down? ")
+    minco, maxco = get_company_extremes(SESSION)
+    if x == 'up':
+        get_and_add_companies(maxco, SESSION)
+    elif x == 'down':
+        get_and_add_companies(minco, SESSION, asc=False)
+    else:
+        pass
