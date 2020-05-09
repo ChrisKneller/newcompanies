@@ -1,8 +1,8 @@
 import requests
 import json
 import os
-from database import connect_to_db, DB, get_or_create, get_company_extremes
-from classes import Company
+from .database import connect_to_db, DB, get_or_create, get_company_extremes
+from .models import Company
 import datetime
 import operator
 from sqlalchemy import func
@@ -22,6 +22,7 @@ def get_company_data(company_number:int) -> dict:
     Return a dict of official company data from Companies House
     based on the input company number.
     """
+    
     r = requests.get(COMPANY_DATA_URL + str(company_number) + FORMAT)
     if r.text[0] == '<':
         return False
@@ -33,17 +34,19 @@ def company_data_to_model(data):
     """
     Returns an instance of the Company class for the input data, where data is the standard format from Companies House.
     """
+
     date = data['IncorporationDate'].split('/')
     dt = datetime.date(int(date[2]),int(date[1]),int(date[0]))
-    company = Company(number=int(data['CompanyNumber']), name=data['CompanyName'], incorporated_on=dt)
+    company = Company(number=int(data['CompanyNumber']), name=data['CompanyName'], incorporated=dt)
     return company
 
 
-def get_and_add_companies(start_point: int, session, asc=True):
+def get_and_add_companies(start_point: int, session, asc: bool=True):
     """
     Given a company number as the starting point and choosing a direction, add companies above or below
     the starting point to the database sequentially.
     """
+
     company_number = start_point
     op = operator.add if asc else operator.sub
     tries = 0
@@ -59,7 +62,7 @@ def get_and_add_companies(start_point: int, session, asc=True):
                 time.sleep(120)
             continue
         company = company_data_to_model(data)
-        instance = get_or_create(session, Company, number=company.number, name=company.name, incorporated_on=company.incorporated_on)
+        instance = get_or_create(session, Company, number=company.number, name=company.name, incorporated=company.incorporated)
         company_number = op(company_number,1)
     return instance
 
