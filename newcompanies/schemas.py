@@ -2,9 +2,10 @@ from typing import List
 from pydantic import BaseModel
 import datetime
 
+
 class CompanyBase(BaseModel):
     number: int
-    title: str
+    name: str
 
 
 class CompanyCreate(CompanyBase):

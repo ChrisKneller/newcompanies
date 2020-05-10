@@ -1,7 +1,10 @@
 from sqlalchemy.orm import Session, Query
 import sqlalchemy as db
+from sqlalchemy import extract, func
 
 from newcompanies import models, schemas
+
+import datetime
 
 
 ### HELPER FUNCTIONS ###
@@ -29,8 +32,8 @@ def get_company_extremes(session: Session):
     """
 
     query = session.query(
-        db.func.max(models.Company.number).label("max"),
-        db.func.min(models.Company.number).label("min"))
+        func.max(models.Company.number).label("max"),
+        func.min(models.Company.number).label("min"))
     res = query.one()
     return res.min, res.max
 
@@ -43,7 +46,7 @@ def filter_query(query: Query, **kwargs):
         **kwargs: A column from the database.
 
     Returns:
-        [type]: [description]
+        query (Query): The filtered query.
     """
     for key,value in kwargs.items():
         query = query.filter_by(**{key:value})
@@ -63,23 +66,47 @@ def create_company(session: Session, company: schemas.CompanyCreate):
     return get_or_create(session, db_company)
 
 
-def get_company_by_id(session: Session, number: int):
-    return session.query(models.Company).filter(models.Company.number == number).first()
+def get_cos(session: Session, skip: int = 0, limit: int = 20000):
+    return session.query(models.Company).offset(skip).limit(limit).all()
 
 
-def get_company_by_date(session: Session, query: Query = None, **kwargs):
+def get_company_by_date(session: Session, **kwargs):
     """Return an ordered Company query object filtered by date.
 
     Args:
         session (Session): A session connected to the database.
-        query (Query): An existing query from the database.
         **kwargs: year, month or day (int).
 
     Returns:
         sqlalchemy.orm.query.Query: A query result filtered by the input kwargs.
     """    
-    if not query:
-        query = session.query(models.Company)
+
+    query = session.query(models.Company)
     for key, value in kwargs.items():
-        query = query.filter(db.extract(key, models.Company.incorporated)==value)
-    return query.order_by(models.Company.number)
+        print("Do the thing here yes")
+        query = query.filter(extract(key, models.Company.incorporated)==value)
+    return query
+
+
+
+def get_companies(session: Session, skip: int = 0, limit: int = None, year: int = None, month: int = None, day: int = None, **kwargs):
+    arguments = locals()[3:]
+    if not any(arguments.values()):
+        return None
+    query = session.query(models.Company)
+    for key, value in arguments.items():
+        if not value:
+            continue
+        if key == 'year' or key == 'month' or key == 'day':
+            query = get_company_by_date(session, query, **{key:value})
+        else:
+            query = filter_query(query, **{key:value})
+    print(query)
+    return query.all()
+
+
+
+def get_company_by_id(session: Session, number: int):
+    return session.query(models.Company).filter(models.Company.number == number).first()
+
+

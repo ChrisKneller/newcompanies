@@ -1,10 +1,16 @@
-from fastapi import FastAPI
+from typing import List
+
+from fastapi import FastAPI, Depends
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, Response
-from .datagather import get_company_data
-from .database import connect_to_db, DB, get_company_by_date, filter_query
-from .models import Company
-from .functions import alchemyencoder, to_json
+from sqlalchemy.orm import Session
+
+from datagather import get_company_data
+from database import SessionLocal, engine
+from models import Company
+from functions import alchemyencoder, to_json
+import crud, models, schemas
+
 import json
 import datetime
 
@@ -13,7 +19,15 @@ import datetime
 
 app = FastAPI()
 
-SESSION = connect_to_db(DB)
+# SESSION = connect_to_db(DB)
+
+# Dependency
+def get_db():
+    try:
+        db = SessionLocal()
+        yield db
+    finally:
+        db.close()
 
 
 @app.get("/")
@@ -32,34 +46,37 @@ async def read_company(company_id: int):
     return company if company else None
 
 
-@app.get("/companies")
-def get_companies(year=False, month=False, day=False, number=False, name=False):
+@app.get("/cos/", response_model=List[schemas.Company])
+def read_cos(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    cos = crud.get_cos(db, skip=skip, limit=limit)
+    return cos
+
+@app.get("/companies", response_model=List[schemas.Company])
+def get_companies(
+    year: int = None, month: int = None, day: int = None, number: int = None, 
+    name: str = None, db: Session = Depends(get_db)):
     arguments = locals()
+    arguments.pop("db")
+    print(arguments)
     if not any(arguments.values()):
         return None
-    query = SESSION.query(Company).order_by(Company.number)
+    myquery = db.query(models.Company)
     for key, value in arguments.items():
+        print(f"{key}: {value}")
         if not value:
             continue
         if key == 'year' or key == 'month' or key == 'day':
-            query = get_company_by_date(SESSION, query, **{key:value})
+            print("Is it doing it here?")
+            myquery = crud.get_company_by_date(db, **{key:value})
         else:
-            query = filter_query(query, **{key:value})
-    return {"companies": [i.as_json() for i in query]} if query else {None}
-
-
-@app.get("/testrequest")
-def test_request():
-    query = SESSION.query(Company).order_by(Company.number).filter_by(name="PAARTI LTD")
-    # return json.dumps({"company": i.to_dict() for i in query}, default=alchemyencoder)
-    return {"company": [i for i in query]}
-    # return Response(to_json(query[0])})
-
+            myquery = crud.filter_query(myquery, **{key:value})
+    return myquery.all()
+    # return {"companies": [i.as_json() for i in query]} if query else {None}
 
 @app.get("/incorporated/today")
-def get_companies_today():
+def read_cos_today(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     today = datetime.datetime.now()
-    return get_companies_by_day(today.year, today.month, today.day)
+    return crud.get_company_by_date(db, year=2020, month=5, day=1).all()
 
 
 # @app.gt("/incorporated")
@@ -84,3 +101,14 @@ def get_companies_by_month(year: int, month: int):
 def get_companies_by_year(year: int):
     query = get_company_by_date(SESSION, year=year)
     return {"companies": [i.as_json() for i in query]}
+
+
+    
+
+@app.get("/testrequest")
+def test_request():
+    query = SESSION.query(Company).order_by(Company.number).filter_by(name="PAARTI LTD")
+    # return json.dumps({"company": i.to_dict() for i in query}, default=alchemyencoder)
+    return {"company": [i for i in query]}
+    # return Response(to_json(query[0])})
+

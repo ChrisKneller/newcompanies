@@ -2,7 +2,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Date, Sequence, ForeignKey, DateTime
 from datetime import datetime
-from .functions import to_camelcase
+from functions import to_camelcase
 
 
 # alembic revision -m "Your message"

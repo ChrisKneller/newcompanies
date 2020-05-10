@@ -1,8 +1,9 @@
 import requests
 import json
 import os
-from .database import connect_to_db, DB, get_or_create, get_company_extremes
-from .models import Company
+from database import connect_to_db, DB
+from crud import get_or_create, get_company_extremes
+from models import Company
 import datetime
 import operator
 from sqlalchemy import func
