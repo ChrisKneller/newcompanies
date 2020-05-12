@@ -35,6 +35,12 @@ class Address(APIBase):
     country : str = None
 
 
+class SICCode(APIBase):
+    code: int
+    text: str
+
+
+
 class CompanyBase(APIBase):
     number: int
     name: str
@@ -47,3 +53,5 @@ class CompanyCreate(CompanyBase):
 class Company(CompanyBase):
     incorporated : datetime.date
     address: Optional[Address]
+    siccodes: List[SICCode]
+

@@ -71,6 +71,7 @@ class Address(Base, ToDictMixin, TimestampMixin):
         return f"<Address(address_line1='{self.address_line1}', "\
              + f"postcode='{self.postcode}')>"
 
+
 class SICCode(Base, TimestampMixin):
     __tablename__ = 'siccodes'
 
