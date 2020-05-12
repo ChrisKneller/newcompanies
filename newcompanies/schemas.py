@@ -1,7 +1,7 @@
 import datetime
 
 from pydantic import BaseModel, BaseConfig, Schema
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Optional
 
 from functions import to_camelcase
 
@@ -15,6 +15,8 @@ class APIBase(BaseModel):
 
 class AddressBase(APIBase):
     address_line1 : str = None
+    address_line2 : str = None
+    address_line3 : str = None
     postcode: str = None
 
 
@@ -23,8 +25,6 @@ class AddressCreate(AddressBase):
 
 
 class Address(AddressBase):
-    address_line2 : str = None
-    address_line3 : str = None
     po_box : str = None
     post_town : str = None
     county : str = None
@@ -43,4 +43,4 @@ class CompanyCreate(CompanyBase):
 
 class Company(CompanyBase):
     incorporated : datetime.date
-    address: Address
+    address: Optional[Address]

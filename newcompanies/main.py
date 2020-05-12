@@ -68,10 +68,12 @@ def get_companies(
     return myquery.all()
 
 
-@app.get("/incorporated/today", response_model=List[schemas.Company])
+@app.get("/incorporated/today",
+         response_model=List[schemas.Company],
+         response_model_exclude_defaults=True)
 def read_cos_today(skip: int = 0, limit: int = 100, 
                    db: Session = Depends(get_db)):
     
     today = datetime.datetime.now()
     
-    return crud.get_company_by_date(db, year=2020, month=5, day=1).all()
+    return crud.get_company_by_date(db, year=2020, month=5, day=11).all()

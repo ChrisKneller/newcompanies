@@ -61,9 +61,11 @@ def data_to_address_dict(data: dict) -> dict:
     for key,value in data['RegAddress'].items():
         address_dict[underscore(key)] = data['RegAddress'][key]
  
-    address_dict['occupier_id'] = int(data['CompanyNumber'])
+    # address_dict['occupier_id'] = int(data['CompanyNumber'])
 
-    return address_dict
+    address = Address(**address_dict)
+
+    return address_dict, address
 
 def get_and_add_companies(start_point: int, session, asc: bool=True):
     """Given a company number as the starting point and choosing a direction, 
@@ -85,11 +87,16 @@ def get_and_add_companies(start_point: int, session, asc: bool=True):
                 time.sleep(120)
             continue
         company = company_data_to_model(data)
-        address = data_to_address_dict(data)
+        address = data_to_address_dict(data)[1]
+        print(company)
+        print(address)
         instance = get_or_create(session, Company, number=company.number, 
                                  name=company.name, 
                                  incorporated=company.incorporated)
-        get_or_create(session, Address, **address)
+        instance.address = address
+        session.add(instance)
+        session.commit()
+        # get_or_create(session, Address, **address)
         company_number = op(company_number,1)
     return instance
 

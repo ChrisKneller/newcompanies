@@ -13,7 +13,7 @@ import datetime
 def get_or_create(session: Session, model, **kwargs):
     """Check if an item exists inside the database; add it if it doesn't.
     """
-
+    print(kwargs)
     instance = session.query(model).filter_by(**kwargs).one_or_none()
     if instance:
         return instance

@@ -34,12 +34,13 @@ class Company(Base, ToDictMixin, TimestampMixin):
     number = Column(Integer, primary_key=True)
     name = Column(String)
     incorporated = Column(Date)
-    # address_id  = Column(Integer, ForeignKey("address.id"))
+    address_id  = Column(Integer, ForeignKey("addresses.id"))
 
-    address = relationship("Address", uselist=False, back_populates="occupier")
+    address = relationship("Address", back_populates="occupier")
 
     def __repr__(self):
-        return f"<Company(number='{self.number}', name='{self.name}', incorporated='{self.incorporated.isoformat}')>"
+        return f"<Company(number='{self.number}', name='{self.name}', "\
+             + f"incorporated='{self.incorporated.isoformat}')>"
 
 
 class Address(Base, ToDictMixin, TimestampMixin):
@@ -54,9 +55,13 @@ class Address(Base, ToDictMixin, TimestampMixin):
     county = Column(String)
     postcode = Column(String)
     country = Column(String)
-    occupier_id = Column(Integer, ForeignKey("companies.number"))
+    # occupier_id = Column(Integer, ForeignKey("companies.number"))
 
     occupier = relationship("Company", back_populates="address")
+
+    def __repr__(self):
+        return f"<Address(address_line1='{self.address_line1}', "\
+             + f"postcode='{self.postcode}')>"
 
 class SICCode(Base):
     __tablename__ = 'siccodes'
