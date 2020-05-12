@@ -24,7 +24,10 @@ class AddressCreate(AddressBase):
     pass
 
 
-class Address(AddressBase):
+class Address(APIBase):
+    address_line1 : str = None
+    address_line2 : str = None
+    address_line3 : str = None
     po_box : str = None
     post_town : str = None
     county : str = None
