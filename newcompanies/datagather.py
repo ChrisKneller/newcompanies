@@ -1,13 +1,17 @@
-import requests
-import json
-import os
-from database import connect_to_db, DB
-from crud import get_or_create, get_company_extremes
-from models import Company
 import datetime
+import json
 import operator
-from sqlalchemy import func
+import os
 import time
+from inflection import underscore
+
+import requests
+from sqlalchemy import func
+
+from crud import get_or_create, get_or_create_from_instance,\
+                 get_company_extremes
+from database import connect_to_db, DB
+from models import Company, Address
 
 # .\env\Scripts\activate
 
@@ -15,37 +19,55 @@ COMPANY_DATA_URL = 'http://data.companieshouse.gov.uk/doc/company/'
 FORMAT = '.json'
 TEST_COMPANY_NUMBER = 12586212
 
-# SESSION = connect_to_db(DB)
-
 
 def get_company_data(company_number:int) -> dict:
-    """
-    Return a dict of official company data from Companies House
+    """Return a dict of official company data from Companies House
     based on the input company number.
     """
     
     r = requests.get(COMPANY_DATA_URL + str(company_number) + FORMAT)
+    
     if r.text[0] == '<':
         return False
+    
     data = json.loads(r.text)['primaryTopic']
+    
     return data
 
 
-def company_data_to_model(data):
-    """
-    Returns an instance of the Company class for the input data, where data is the standard format from Companies House.
+def company_data_to_model(data: dict) -> Company:
+    """Returns an instance of the Company class for the input data, where data 
+    is the standard format from Companies House.
     """
 
     date = data['IncorporationDate'].split('/')
+    
     dt = datetime.date(int(date[2]),int(date[1]),int(date[0]))
-    company = Company(number=int(data['CompanyNumber']), name=data['CompanyName'], incorporated=dt)
+    
+    company = Company(number=int(data['CompanyNumber']), 
+                      name=data['CompanyName'], 
+                      incorporated=dt)
+    
     return company
 
 
-def get_and_add_companies(start_point: int, session, asc: bool=True):
+def data_to_address_dict(data: dict) -> dict:
+    """Returns an instance of the Address class for the input data, where data
+    is the standard format from Companies House.
     """
-    Given a company number as the starting point and choosing a direction, add companies above or below
-    the starting point to the database sequentially.
+
+    address_dict = {}
+
+    for key,value in data['RegAddress'].items():
+        address_dict[underscore(key)] = data['RegAddress'][key]
+ 
+    address_dict['occupier_id'] = int(data['CompanyNumber'])
+
+    return address_dict
+
+def get_and_add_companies(start_point: int, session, asc: bool=True):
+    """Given a company number as the starting point and choosing a direction, 
+    add companies above/below the starting point to the database sequentially.
     """
 
     company_number = start_point
@@ -63,7 +85,11 @@ def get_and_add_companies(start_point: int, session, asc: bool=True):
                 time.sleep(120)
             continue
         company = company_data_to_model(data)
-        instance = get_or_create(session, Company, number=company.number, name=company.name, incorporated=company.incorporated)
+        address = data_to_address_dict(data)
+        instance = get_or_create(session, Company, number=company.number, 
+                                 name=company.name, 
+                                 incorporated=company.incorporated)
+        get_or_create(session, Address, **address)
         company_number = op(company_number,1)
     return instance
 

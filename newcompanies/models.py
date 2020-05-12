@@ -1,9 +1,13 @@
+from datetime import datetime
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Date, Sequence, ForeignKey, DateTime
-from datetime import datetime
-from functions import to_camelcase
 
+try:
+    from .functions import to_camelcase
+except:
+    from functions import to_camelcase
 
 # alembic revision -m "Your message"
 # alembic revision --autogenerate -m "Your message"
@@ -20,27 +24,19 @@ class ToDictMixin(object):
             return {column.key: getattr(self, attr) for attr, column in self.__mapper__.c.items()}
 
 
-class CamelMixin(object):
-    class Config:
-        alias_generator = to_camelcase
-        allow_population_by_field_name = True
-
-
 class TimestampMixin(object):
     record_created = Column('record_created', DateTime, default=datetime.now())
 
 
-class Company(Base, ToDictMixin, TimestampMixin, CamelMixin):
+class Company(Base, ToDictMixin, TimestampMixin):
     __tablename__ = 'companies'
 
     number = Column(Integer, primary_key=True)
     name = Column(String)
     incorporated = Column(Date)
+    # address_id  = Column(Integer, ForeignKey("address.id"))
 
-    address = relationship("Address", back_populates="occupier")
-
-    def as_json(self):
-       return {"number": self.number, "name": self.name, "incorporated": str(self.incorporated.isoformat())}
+    address = relationship("Address", uselist=False, back_populates="occupier")
 
     def __repr__(self):
         return f"<Company(number='{self.number}', name='{self.name}', incorporated='{self.incorporated.isoformat}')>"
@@ -50,9 +46,9 @@ class Address(Base, ToDictMixin, TimestampMixin):
     __tablename__ = 'addresses'
 
     id = Column(Integer, primary_key=True)
-    line_1 = Column(String)
-    line_2 = Column(String)
-    line_3 = Column(String)
+    address_line1 = Column(String)
+    address_line2 = Column(String)
+    address_line3 = Column(String)
     po_box = Column(String)
     post_town = Column(String)
     county = Column(String)
