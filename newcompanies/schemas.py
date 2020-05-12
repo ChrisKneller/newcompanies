@@ -1,9 +1,38 @@
-from typing import List
-from pydantic import BaseModel
 import datetime
 
+from pydantic import BaseModel, BaseConfig, Schema
+from typing import List, Dict, Set
 
-class CompanyBase(BaseModel):
+from functions import to_camelcase
+
+
+class APIBase(BaseModel):
+    class Config(BaseConfig):
+        orm_mode = True
+        alias_generator = to_camelcase
+        allow_population_by_field_name = True
+
+
+class AddressBase(APIBase):
+    address_line1 : str = None
+    postcode: str = None
+
+
+class AddressCreate(AddressBase):
+    pass
+
+
+class Address(AddressBase):
+    address_line2 : str = None
+    address_line3 : str = None
+    po_box : str = None
+    post_town : str = None
+    county : str = None
+    postcode : str = None
+    country : str = None
+
+
+class CompanyBase(APIBase):
     number: int
     name: str
 
@@ -14,30 +43,4 @@ class CompanyCreate(CompanyBase):
 
 class Company(CompanyBase):
     incorporated : datetime.date
-
-    class Config:
-        orm_mode = True
-
-
-class AddressBase(BaseModel):
-    line_1 : str
-    postcode: str
-
-
-class AddressCreate(AddressBase):
-    pass
-
-
-class Address(AddressBase):
-
-    line_2 : str
-    line_3 : str
-    po_box : str
-    post_town : str
-    county : str
-    postcode : str
-    country : str
-
-
-    class Config:
-        orm_mode = True
+    address: Address
