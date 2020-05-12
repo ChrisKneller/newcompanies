@@ -34,9 +34,15 @@ class Company(Base, ToDictMixin, TimestampMixin):
     number = Column(Integer, primary_key=True)
     name = Column(String)
     incorporated = Column(Date)
+<<<<<<< HEAD
     address_id  = Column(Integer, ForeignKey("addresses.id"))
 
     address = relationship("Address", back_populates="occupier")
+=======
+    # address_id  = Column(Integer, ForeignKey("address.id"))
+
+    address = relationship("Address", uselist=False, back_populates="occupier")
+>>>>>>> 0e9147aac53922f29ddd4021f53e77e0df9659ee
 
     def __repr__(self):
         return f"<Company(number='{self.number}', name='{self.name}', "\
