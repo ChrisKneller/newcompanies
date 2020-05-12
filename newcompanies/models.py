@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, Date, Sequence, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Date, Sequence, ForeignKey, DateTime, Table
 
 try:
     from .functions import to_camelcase
@@ -14,6 +14,12 @@ except:
 # alembic upgrade head
 
 Base = declarative_base()
+
+
+company_sic_assoc = Table('association', Base.metadata,
+    Column('co_number', Integer, ForeignKey('companies.number')),
+    Column('siccode', Integer, ForeignKey('siccodes.code'))    
+)
 
 
 class ToDictMixin(object):
@@ -37,6 +43,9 @@ class Company(Base, ToDictMixin, TimestampMixin):
     address_id  = Column(Integer, ForeignKey("addresses.id"))
 
     address = relationship("Address", back_populates="occupier")
+    siccodes = relationship("SICCode", 
+                            secondary=company_sic_assoc,
+                            back_populates="companies")
 
     def __repr__(self):
         return f"<Company(number='{self.number}', name='{self.name}', "\
@@ -55,7 +64,6 @@ class Address(Base, ToDictMixin, TimestampMixin):
     county = Column(String)
     postcode = Column(String)
     country = Column(String)
-    # occupier_id = Column(Integer, ForeignKey("companies.number"))
 
     occupier = relationship("Company", back_populates="address")
 
@@ -63,11 +71,15 @@ class Address(Base, ToDictMixin, TimestampMixin):
         return f"<Address(address_line1='{self.address_line1}', "\
              + f"postcode='{self.postcode}')>"
 
-class SICCode(Base):
+class SICCode(Base, TimestampMixin):
     __tablename__ = 'siccodes'
 
     code = Column(Integer, primary_key=True)
     text = Column(String)
+
+    companies = relationship("Company",
+                             secondary=company_sic_assoc,
+                             back_populates="siccodes")
 
 class Director(Base):
     __tablename__ = 'directors'
