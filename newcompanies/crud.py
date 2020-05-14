@@ -30,7 +30,6 @@ def get_or_create_from_instance(session, model, instance):
     """
 
     arguments = instance.__dict__
-    print(arguments)
     arguments.pop("_sa_instance_state")
 
     exist_instance = session.query(model).filter_by(**arguments).one_or_none()

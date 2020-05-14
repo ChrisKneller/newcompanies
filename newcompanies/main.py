@@ -3,13 +3,13 @@ import datetime
 
 from typing import List
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.orm import Session
 
 import crud, models, schemas
-from datagather import get_company_data
+import datagather as dg
 from database import SessionLocal, engine
 from functions import alchemyencoder, to_json
 from models import Company, Address
@@ -32,12 +32,34 @@ def get_db():
 @app.get("/company/{company_id}", response_model=schemas.Company)
 def read_company(company_id: int, db: Session = Depends(get_db)):
     
-    # company = get_company_data(company_id)
+    co = db.query(models.Company).filter_by(number=company_id).one_or_none()
 
-    company = db.query(models.Company).filter_by(number=company_id).one_or_none()
-    # query = query.filter_by(**{key:value})
-    
-    return company if company else None
+    if not co:
+        data = dg.get_company_data(company_id)
+        if not data:
+            raise HTTPException(status_code=404,
+                                detail="Invalid company number")
+        co = dg.data_to_company(data)
+        co = crud.get_or_create(db, Company, number=co.number, 
+                                 name=co.name, 
+                                 incorporated=co.incorporated)
+    elif not all([co.address, co.sic_codes]):
+        data = dg.get_company_data(company_id)
+
+    if not co.address:
+        address = dg.data_to_address(data)[1]
+        co.address = address
+
+    if not co.sic_codes:
+        sic_codes = dg.data_to_sic(data, db)
+        co.sic_codes = sic_codes
+
+    db.add(co)
+    db.commit()
+
+    co = db.query(models.Company).filter_by(number=company_id).one_or_none()
+
+    return co if co else None
 
 
 @app.get("/search", response_model=List[schemas.CompanyIncorporated])
