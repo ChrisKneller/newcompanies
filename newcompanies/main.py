@@ -37,8 +37,8 @@ async def read_company(company_id: int):
     return company if company else None
 
 
-@app.get("/companies", response_model=List[schemas.Company])
-def get_companies(
+@app.get("/search", response_model=List[schemas.Company])
+def search_companies(
     year: int = None, month: int = None, day: int = None, number: int = None, 
     name: str = None, db: Session = Depends(get_db)):
     
@@ -71,9 +71,12 @@ def get_companies(
 @app.get("/incorporated/today",
          response_model=List[schemas.Company],
          response_model_exclude_defaults=True)
-def read_cos_today(skip: int = 0, limit: int = 100, 
+def read_companies_incorporated_today(skip: int = 0, limit: int = 100, 
                    db: Session = Depends(get_db)):
     
     today = datetime.datetime.now()
     
-    return crud.get_company_by_date(db, year=2020, month=5, day=11).all()
+    return crud.get_company_by_date(db, 
+                                    year=today.year, 
+                                    month=today.month, 
+                                    day=today.day).all()
