@@ -29,15 +29,18 @@ def get_db():
         db.close()
 
 
-@app.get("/company/{company_id}")
-async def read_company(company_id: int):
+@app.get("/company/{company_id}", response_model=schemas.Company)
+def read_company(company_id: int, db: Session = Depends(get_db)):
     
-    company = get_company_data(company_id)
+    # company = get_company_data(company_id)
+
+    company = db.query(models.Company).filter_by(number=company_id).one_or_none()
+    # query = query.filter_by(**{key:value})
     
     return company if company else None
 
 
-@app.get("/search", response_model=List[schemas.Company])
+@app.get("/search", response_model=List[schemas.CompanyIncorporated])
 def search_companies(
     year: int = None, month: int = None, day: int = None, number: int = None, 
     name: str = None, db: Session = Depends(get_db)):
@@ -69,7 +72,7 @@ def search_companies(
 
 
 @app.get("/incorporated/today",
-         response_model=List[schemas.Company],
+         response_model=List[schemas.CompanyIncorporated],
          response_model_exclude_defaults=True)
 def read_companies_incorporated_today(skip: int = 0, limit: int = 100, 
                    db: Session = Depends(get_db)):

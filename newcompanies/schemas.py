@@ -46,12 +46,16 @@ class CompanyBase(APIBase):
     name: str
 
 
+class CompanyIncorporated(CompanyBase):
+    incorporated: datetime.date
+
+
 class CompanyCreate(CompanyBase):
     incorporated : datetime.date
 
 
 class Company(CompanyBase):
-    incorporated : datetime.date
+    incorporated: datetime.date
     address: Optional[Address]
     sic_codes: Optional[List[SICCode]]
 
