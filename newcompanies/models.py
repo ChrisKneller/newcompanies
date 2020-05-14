@@ -22,19 +22,11 @@ company_sic_assoc = Table('association', Base.metadata,
 )
 
 
-class ToDictMixin(object):
-    def to_dict(self, camelcase=True):
-        if camelcase:
-            return {to_camelcase(column.key): getattr(self, attr) for attr, column in self.__mapper__.c.items()}
-        else:
-            return {column.key: getattr(self, attr) for attr, column in self.__mapper__.c.items()}
-
-
 class TimestampMixin(object):
     record_created = Column('record_created', DateTime, default=datetime.now())
 
 
-class Company(Base, ToDictMixin, TimestampMixin):
+class Company(Base, TimestampMixin):
     __tablename__ = 'companies'
 
     number = Column(Integer, primary_key=True)
@@ -52,7 +44,7 @@ class Company(Base, ToDictMixin, TimestampMixin):
              + f"incorporated='{self.incorporated.isoformat}')>"
 
 
-class Address(Base, ToDictMixin, TimestampMixin):
+class Address(Base, TimestampMixin):
     __tablename__ = 'addresses'
 
     id = Column(Integer, primary_key=True)
@@ -89,21 +81,6 @@ class Director(Base):
     first_names = Column('firstNames', String)
     last_name = Column('lastName', String)
 
-# class CompanyAddresses(Base):
-#     __tablename__ = 'companyaddresses'
-
-#     dttm = Column(DateTime, default=datetime.utcnow)
-
-# class CompanySICCodes(Base):
-#     __tablename__ = 'companysiccodes'
-
-#     dttm = Column(DateTime, default=datetime.utcnow)
-    
-
-# class CompanyDirectors(Base):
-#     __tablename__ = 'companydirectors'
-
-#     dttm = Column(DateTime, default=datetime.utcnow)
 
 class Test(Base):
     __tablename__ = 'testtable'
