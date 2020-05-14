@@ -43,7 +43,7 @@ class Company(Base, ToDictMixin, TimestampMixin):
     address_id  = Column(Integer, ForeignKey("addresses.id"))
 
     address = relationship("Address", back_populates="occupier")
-    siccodes = relationship("SICCode", 
+    sic_codes = relationship("SICCode", 
                             secondary=company_sic_assoc,
                             back_populates="companies")
 
@@ -80,7 +80,7 @@ class SICCode(Base, TimestampMixin):
 
     companies = relationship("Company",
                              secondary=company_sic_assoc,
-                             back_populates="siccodes")
+                             back_populates="sic_codes")
 
 class Director(Base):
     __tablename__ = 'directors'

@@ -53,5 +53,5 @@ class CompanyCreate(CompanyBase):
 class Company(CompanyBase):
     incorporated : datetime.date
     address: Optional[Address]
-    siccodes: List[SICCode]
+    sic_codes: Optional[List[SICCode]]
 
