@@ -13,6 +13,7 @@ import datagather as dg
 from database import SessionLocal, engine
 from functions import alchemyencoder, to_json
 from models import Company, Address
+from responses import PrettyJSONResponse
 
 # uvicorn main:app --reload
 # env\Scripts\activate.bat
@@ -29,7 +30,10 @@ def get_db():
         db.close()
 
 
-@app.get("/company/{company_id}", response_model=schemas.Company)
+@app.get("/company/{company_id}", 
+         response_model=schemas.Company,
+         response_model_exclude_defaults=True,
+         response_class=PrettyJSONResponse)
 def read_company(company_id: int, db: Session = Depends(get_db)):
     
     co = db.query(models.Company).filter_by(number=company_id).one_or_none()
@@ -62,7 +66,10 @@ def read_company(company_id: int, db: Session = Depends(get_db)):
     return co if co else None
 
 
-@app.get("/search", response_model=List[schemas.CompanyIncorporated])
+@app.get("/search", 
+         response_model=List[schemas.CompanyIncorporated],
+         response_model_exclude_defaults=True,
+         response_class=PrettyJSONResponse)
 def search_companies(
     year: int = None, month: int = None, day: int = None, number: int = None, 
     name: str = None, db: Session = Depends(get_db)):
@@ -95,7 +102,8 @@ def search_companies(
 
 @app.get("/incorporated/today",
          response_model=List[schemas.CompanyIncorporated],
-         response_model_exclude_defaults=True)
+         response_model_exclude_defaults=True,
+         response_class=PrettyJSONResponse)
 def read_companies_incorporated_today(skip: int = 0, limit: int = 100, 
                    db: Session = Depends(get_db)):
     
