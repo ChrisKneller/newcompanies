@@ -6,6 +6,7 @@ from typing import List
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, Response
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
 import crud, models, schemas
@@ -19,6 +20,8 @@ from responses import PrettyJSONResponse
 # env\Scripts\activate.bat
 
 app = FastAPI()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
 
 # Dependency
@@ -34,8 +37,9 @@ def get_db():
          response_model=schemas.Company,
          response_model_exclude_defaults=True,
          response_class=PrettyJSONResponse)
-def read_company(company_id: int, db: Session = Depends(get_db)):
-    
+def read_company(company_id: int, 
+                 db: Session = Depends(get_db),
+                 token: str = Depends(oauth2_scheme)):
     co = db.query(models.Company).filter_by(number=company_id).one_or_none()
 
     if not co:
