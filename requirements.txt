@@ -1,5 +1,7 @@
 alembic==1.4.2
+bcrypt==3.1.7
 certifi==2020.4.5.1
+cffi==1.14.0
 chardet==3.0.4
 click==7.1.2
 fastapi==0.54.1
@@ -8,8 +10,10 @@ idna==2.9
 inflection==0.4.0
 Mako==1.1.2
 MarkupSafe==1.1.1
--e git+https://github.com/ChrisKneller/newcompanies.git@4ce7aecd5e7fac8165d010013e3f421874afdfe2#egg=newcompanies
+-e git+https://github.com/ChrisKneller/newcompanies.git@66ca1aa18162fbe4cfb6d24580dc75544d0b261b#egg=newcompanies
+passlib==1.7.2
 psycopg2==2.8.5
+pycparser==2.20
 pydantic==1.5.1
 PyJWT==1.7.1
 python-dateutil==2.8.1
