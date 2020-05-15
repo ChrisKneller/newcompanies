@@ -30,7 +30,7 @@ def get_db():
         db.close()
 
 
-@app.get("/company/{company_id}", 
+@app.get("/api/company/{company_id}", 
          response_model=schemas.Company,
          response_model_exclude_defaults=True,
          response_class=PrettyJSONResponse)
@@ -66,7 +66,7 @@ def read_company(company_id: int, db: Session = Depends(get_db)):
     return co if co else None
 
 
-@app.get("/search", 
+@app.get("/api/search", 
          response_model=List[schemas.CompanyIncorporated],
          response_model_exclude_defaults=True,
          response_class=PrettyJSONResponse)
@@ -100,7 +100,7 @@ def search_companies(
     return myquery.all()
 
 
-@app.get("/incorporated/today",
+@app.get("/api/incorporated/today",
          response_model=List[schemas.CompanyIncorporated],
          response_model_exclude_defaults=True,
          response_class=PrettyJSONResponse)
