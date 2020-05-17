@@ -59,3 +59,22 @@ class Company(CompanyBase):
     address: Optional[Address]
     sic_codes: Optional[List[SICCode]]
 
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: str = None
+
+
+class User(BaseModel):
+    username: str
+    email: str = None
+    full_name: str = None
+    disabled: bool = None
+
+
+class UserInDB(User):
+    hashed_password: str
