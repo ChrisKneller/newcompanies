@@ -1,8 +1,11 @@
+import enum
 from datetime import datetime
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, Date, Sequence, ForeignKey, DateTime, Table
+from sqlalchemy.orm import relationship, validates
+from sqlalchemy import (Column, Integer, String, Date, Sequence, ForeignKey, 
+    DateTime, Table, Boolean)
+from sqlalchemy_utils.types.choice import ChoiceType
 
 try:
     from .functions import to_camelcase
@@ -24,6 +27,8 @@ company_sic_assoc = Table('association', Base.metadata,
 
 class TimestampMixin(object):
     record_created = Column('record_created', DateTime, default=datetime.now())
+    record_updated = Column('record_updated', DateTime, default=datetime.now,
+        onupdate=datetime.now)
 
 
 class Company(Base, TimestampMixin):
@@ -90,3 +95,33 @@ class Test(Base):
 
     def __repr__(self):
         return f"<Test(id='{self.id}', testfield={self.testfield})>" 
+
+
+class User(Base, TimestampMixin):
+    __tablename__ = 'users'
+    
+    SUB_TYPES = [
+        (0, "Free"),
+        (1, "Standard"),
+        (2, "Advanced"),
+        (3, "Enterprise"),
+    ]
+
+    id = Column(Integer, primary_key=True)
+    email = Column(String)
+    hashed_password = Column(String)
+    active = Column(Boolean)
+    subscription_type = Column(ChoiceType(SUB_TYPES))
+
+    @validates('email')
+    def validate_email(self, key, address):
+        assert '@' in address
+        return address
+
+    @property
+    def is_paying_member(self):
+        if self.subscription_type == 0:
+            return False
+        else:
+            return True
+
