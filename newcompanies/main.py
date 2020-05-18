@@ -41,9 +41,29 @@ def get_db():
 ### USER / LOGIN SECTION ###
 
 
+@app.post("/signup", response_model=schemas.User2)
+async def signup(db: Session = Depends(get_db),
+                 form_data: OAuth2PasswordRequestForm = Depends()):
+    user = crud.create_user(db, form_data.username, form_data.password)
+    if not user[0]:
+        if user[1] == "User already exists":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=user[1]
+            )
+        elif user[1] == "Email address not valid":
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=user[1]
+            )
+    return user[0]
+
+
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = u.authenticate_user(u.fake_users_db, form_data.username, form_data.password)
+    user = u.authenticate_user(u.fake_users_db, 
+                               form_data.username, 
+                               form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

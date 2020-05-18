@@ -1,8 +1,11 @@
+import re
+
 from sqlalchemy.orm import Session, Query
 import sqlalchemy as db
 from sqlalchemy import extract, func
 
 from newcompanies import models, schemas
+from users import get_password_hash, verify_password
 
 import datetime
 
@@ -129,3 +132,19 @@ def get_companies(session: Session, skip: int = 0, limit: int = None,
 def get_company_by_id(session: Session, number: int):
     return (session.query(models.Company)
             .filter(models.Company.number == number).first())
+
+
+### USER FUNCTIONS ###
+
+
+def create_user(session: Session, email: str, password: str):
+    if not re.match("[^@]+@[^@]+\.[^@]+", email):
+        return (False, "Email address not valid")
+    hashed_password = get_password_hash(password)
+    user = session.query(models.User).filter_by(email=email).one_or_none()
+    if user:
+        return (False, "User already exists")
+    user = get_or_create(session, models.User, email=email, 
+                         hashed_password=hashed_password)
+    return (user, "User created")
+    # return user

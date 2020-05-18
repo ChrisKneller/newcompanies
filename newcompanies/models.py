@@ -107,11 +107,12 @@ class User(Base, TimestampMixin):
         (3, "Enterprise"),
     ]
 
+
     id = Column(Integer, primary_key=True)
     email = Column(String)
     hashed_password = Column(String)
-    active = Column(Boolean)
-    subscription_type = Column(ChoiceType(SUB_TYPES))
+    active = Column(Boolean, default=True)
+    sub_type = Column(Integer, default=0)
 
     @validates('email')
     def validate_email(self, key, address):
@@ -120,7 +121,7 @@ class User(Base, TimestampMixin):
 
     @property
     def is_paying_member(self):
-        if self.subscription_type == 0:
+        if sub_type == 0:
             return False
         else:
             return True

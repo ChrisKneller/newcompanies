@@ -70,10 +70,13 @@ class TokenData(BaseModel):
 
 
 class User(BaseModel):
-    username: str
-    email: str = None
+    email: str
     full_name: str = None
     disabled: bool = None
+
+
+class User2(APIBase):
+    email: str
 
 
 class UserInDB(User):
