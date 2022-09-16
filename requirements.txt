@@ -8,7 +8,7 @@ fastapi==0.54.1
 h11==0.9.0
 idna==2.9
 inflection==0.4.0
-Mako==1.1.2
+Mako==1.2.2
 MarkupSafe==1.1.1
 -e git+https://github.com/ChrisKneller/newcompanies.git@66ca1aa18162fbe4cfb6d24580dc75544d0b261b#egg=newcompanies
 passlib==1.7.2
